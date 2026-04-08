@@ -140,14 +140,14 @@
         + Create First Project
       </button>
     </div>
-    <div class="flex justify-end mb-6">
+    <div id="new-project-btn-wrapper" class="hidden justify-end mb-6">
       <button onclick="openNewProjectModal()"
         class="text-sm font-semibold px-4 py-2 rounded-lg border border-purple-500/50 text-purple-300 hover:bg-purple-500/15 hover:border-purple-400 transition">
         + New Project
       </button>
     </div>
     <div id="projects-container" class="space-y-6"></div>
-    <div class="mt-8">
+    <div id="export-btn-wrapper" class="hidden mt-8">
       <button onclick="exportCSV()"
         class="text-sm font-semibold px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-purple-500 hover:text-purple-300 transition">
         &#8659; Export CSV
@@ -596,7 +596,12 @@
       const container  = document.getElementById('projects-container');
       const emptyState = document.getElementById('empty-state');
 
-      if (data.projects.length === 0) {
+      const hasProjects = data.projects.length > 0;
+      document.getElementById('new-project-btn-wrapper').classList.toggle('hidden', !hasProjects);
+      document.getElementById('new-project-btn-wrapper').classList.toggle('flex', hasProjects);
+      document.getElementById('export-btn-wrapper').classList.toggle('hidden', !hasProjects);
+
+      if (!hasProjects) {
         container.innerHTML = '';
         emptyState.classList.remove('hidden');
         emptyState.classList.add('flex');
