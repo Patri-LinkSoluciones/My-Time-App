@@ -730,7 +730,7 @@
                 onkeydown="if(event.key==='Enter') commitEditTask('${task.id}'); if(event.key==='Escape') cancelEditTask('${task.id}')"
                 onblur="commitEditTask('${task.id}')" />
               <button onclick="startEditTask('${task.id}')"
-                class="text-slate-500 hover:text-purple-400 transition flex-shrink-0 text-xs" title="Edit task name">&#9998;</button>
+                class="text-slate-500 hover:text-purple-400 transition flex-shrink-0 text-base" title="Edit task name">&#9998;</button>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
               ${isRunning ? `<span class="w-2 h-2 rounded-full bg-teal-400 pulse-ring flex-shrink-0"></span>` : ''}
