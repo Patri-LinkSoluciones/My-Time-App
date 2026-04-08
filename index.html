@@ -31,6 +31,20 @@
     .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
     .btn-primary:active { transform: translateY(0); }
     button { transition-duration: 60ms !important; }
+    .btn-outline-gradient {
+      background: linear-gradient(rgba(15,15,26,1), rgba(15,15,26,1)) padding-box,
+                  linear-gradient(135deg, #a855f7, #ec4899) border-box;
+      border: 1.5px solid transparent;
+      background-clip: padding-box, border-box;
+      transition: transform 0.06s;
+    }
+    .btn-outline-gradient:hover { transform: scale(1.04); }
+    .btn-outline-gradient span {
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
     .task-row {
       background: rgba(15, 15, 26, 0.6);
       border: 1px solid rgba(168, 85, 247, 0.1);
@@ -143,14 +157,14 @@
     </div>
     <div id="new-project-btn-wrapper" class="hidden justify-end mb-6">
       <button onclick="openNewProjectModal()"
-        class="text-sm font-semibold px-4 py-2 rounded-lg border border-purple-500/50 text-purple-300 hover:bg-purple-500/15 hover:border-purple-400 transition">
-        + New Project
+        class="btn-outline-gradient text-sm font-semibold px-4 py-2 rounded-lg">
+        <span>+ New Project</span>
       </button>
     </div>
     <div id="projects-container" class="space-y-6"></div>
     <div id="export-btn-wrapper" class="hidden mt-8">
       <button onclick="exportCSV()"
-        class="text-sm font-semibold px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:border-purple-500 hover:text-purple-300 transition">
+        class="text-sm px-4 py-2 rounded-lg border border-slate-700/60 text-slate-500 hover:text-slate-300 hover:border-slate-500 transition">
         &#8659; Export CSV
       </button>
     </div>
