@@ -325,8 +325,24 @@
       timerInterval = null;
     }
 
+    function checkAutoPause() {
+      if (!activeTaskId) return;
+      const now = new Date();
+      const day = now.getDay(); // 0=Sun, 1=Mon ... 5=Fri, 6=Sat
+      const h = now.getHours();
+      const m = now.getMinutes();
+      const time = h * 60 + m;
+      const isFriday = day === 5;
+      const isMonThu = day >= 1 && day <= 4;
+      if ((isMonThu && time >= 960) || (isFriday && time >= 840)) { // 960=16:00, 840=14:00
+        pauseTask(activeProjectId, activeTaskId);
+      }
+    }
+
     function tickTimer() {
       if (!activeTaskId) { stopTimerLoop(); return; }
+      checkAutoPause();
+      if (!activeTaskId) return; // autopause may have stopped it
       const task = findTask(activeProjectId, activeTaskId);
       const el = document.getElementById('timer-' + activeTaskId);
       if (el && task) el.textContent = formatDuration(taskTotalMs(task));
@@ -572,6 +588,73 @@
       closeConfirmModal();
     };
 
+    // ── Manual time edit ──────────────────────────────────────────────────────
+    function openTimeEdit(pid, tid) {
+      if (activeTaskId === tid) return; // can't edit while running
+      const timerEl = document.getElementById('timer-' + tid);
+      const editEl  = document.getElementById('time-edit-' + tid);
+      if (!timerEl || !editEl) return;
+      timerEl.classList.add('hidden');
+      editEl.classList.remove('hidden');
+      editEl.focus();
+      editEl.select();
+    }
+
+    function cancelTimeEdit(pid, tid) {
+      const timerEl = document.getElementById('timer-' + tid);
+      const editEl  = document.getElementById('time-edit-' + tid);
+      if (timerEl) timerEl.classList.remove('hidden');
+      if (editEl) editEl.classList.add('hidden');
+    }
+
+    function commitTimeEdit(pid, tid) {
+      const editEl = document.getElementById('time-edit-' + tid);
+      if (!editEl) return;
+      const task = findTask(pid, tid);
+      if (!task) return;
+
+      const parts = editEl.value.trim().split(':').map(Number);
+      let newMs = 0;
+      if (parts.length === 3 && parts.every(n => !isNaN(n))) {
+        newMs = (parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000;
+      } else if (parts.length === 2 && parts.every(n => !isNaN(n))) {
+        newMs = (parts[0] * 3600 + parts[1] * 60) * 1000;
+      }
+
+      if (newMs < 0) newMs = 0;
+
+      const currentMs = taskTotalMs(task);
+      const diff = newMs - currentMs;
+
+      if (diff !== 0) {
+        if (diff > 0) {
+          // Add a closed session for the extra time
+          const now = new Date();
+          const start = new Date(now.getTime() - diff);
+          task.sessions.push({ start: start.toISOString(), end: now.toISOString() });
+        } else {
+          // Reduce time: trim sessions from the end
+          let toRemove = -diff;
+          for (let i = task.sessions.length - 1; i >= 0 && toRemove > 0; i--) {
+            const s = task.sessions[i];
+            if (!s.end) continue;
+            const dur = new Date(s.end) - new Date(s.start);
+            if (dur <= toRemove) {
+              toRemove -= dur;
+              task.sessions.splice(i, 1);
+            } else {
+              s.start = new Date(new Date(s.end).getTime() - (dur - toRemove)).toISOString();
+              toRemove = 0;
+            }
+          }
+        }
+        saveData();
+      }
+
+      renderProject(pid);
+      document.getElementById('daily-total').textContent = formatDuration(dailyTotalMs());
+    }
+
     // ── Goal management ──────────────────────────────────────────────────────
     function openGoalInput(tid) {
       const area = document.getElementById('goal-input-' + tid);
@@ -754,7 +837,13 @@
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
               ${isRunning ? `<span class="w-2 h-2 rounded-full bg-teal-400 pulse-ring flex-shrink-0"></span>` : ''}
-              <span id="timer-${task.id}" class="text-sm font-mono font-bold timer-badge ${isRunning ? 'text-teal-400' : 'text-slate-400'}">${formatDuration(total)}</span>
+              <span id="timer-${task.id}" class="text-sm font-mono font-bold timer-badge ${isRunning ? 'text-teal-400' : 'text-slate-400 cursor-pointer hover:text-purple-300'}"
+                ${isRunning ? '' : `onclick="openTimeEdit('${pid}','${task.id}')" title="Click to edit time"`}>${formatDuration(total)}</span>
+              <input id="time-edit-${task.id}" type="text" value="${formatDuration(total)}" placeholder="HH:MM:SS"
+                class="hidden text-sm font-mono font-bold timer-badge text-purple-300"
+                style="width:85px; padding:2px 6px; background:rgba(15,15,26,0.8); border:1px solid rgba(168,85,247,0.5); border-radius:0.375rem; outline:none; text-align:center;"
+                onkeydown="if(event.key==='Enter') commitTimeEdit('${pid}','${task.id}'); if(event.key==='Escape') cancelTimeEdit('${pid}','${task.id}')"
+                onblur="commitTimeEdit('${pid}','${task.id}')" />
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
               ${controls}
