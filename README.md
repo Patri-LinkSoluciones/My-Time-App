@@ -8,6 +8,8 @@ A lightweight, fully client-side **time tracker** built with HTML, Tailwind CSS,
 - **Tasks** — Add, rename (double-click or pencil icon), and delete tasks under any project
 - **Time tracking** — Start ▶️, Pause ⏸️, and Stop ⏹️ each task; only one task runs at a time
 - **Task goals** — Set an hour goal per task with a live progress bar; turns green when completed
+- **Manual time edit** — Click on any task's timer to manually adjust the tracked time
+- **Auto-pause** — Tasks are automatically paused after work hours (Mon–Thu 16:00, Fri 14:00)
 - **Session history** — Every start/stop cycle is saved as a session; total time is the sum of all sessions
 - **Live timer** — Running tasks show a live ticking counter
 - **Daily summary** — Header shows the total time tracked today across all tasks
@@ -47,6 +49,7 @@ python3 -m http.server
 | Pause timer | Click **⏸ Pause** while a task is running |
 | Resume timer | Click **▶ Start** again on a paused task |
 | Stop & save | Click **■ Stop** to end the session and save it |
+| Edit time | Click on the timer display (when paused) and type the new time in `HH:MM:SS` |
 | Set goal | Click **🎯 Goal** on a task, enter hours and click Save |
 | Export data | Click **⇓ Export CSV** at the bottom of the page |
 | Delete task | Click the **×** button on the task row |
