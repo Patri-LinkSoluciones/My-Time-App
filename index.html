@@ -118,6 +118,15 @@
       background-clip: text;
       animation: gradientShift 5s ease infinite;
     }
+    /* Drag & drop */
+    .drag-handle { cursor: grab; color: rgba(148,163,184,0.35); transition: color 0.15s; }
+    .drag-handle:hover { color: rgba(148,163,184,0.75); }
+    .drag-handle:active { cursor: grabbing; }
+    .card-dragging { opacity: 0.35; }
+    .card-drag-over .card {
+      border-color: rgba(168, 85, 247, 0.65);
+      box-shadow: 0 0 0 2px rgba(168,85,247,0.25);
+    }
   </style>
 </head>
 <body class="min-h-screen text-slate-200 font-sans">
@@ -207,6 +216,7 @@
     const COLORS = ['#a855f7','#ec4899','#06b6d4','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#f97316','#14b8a6'];
 
     let data = { projects: [] };
+    let dragSrcProjectId = null;
     let activeTaskId = null;
     let activeProjectId = null;
     let timerInterval = null;
@@ -690,6 +700,47 @@
     }
 
     // ── Render ───────────────────────────────────────────────────────────────
+    function onCardDragStart(e) {
+      const interactive = e.composedPath().find(el =>
+        el !== e.currentTarget && (el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')
+      );
+      if (interactive) { e.preventDefault(); return; }
+      dragSrcProjectId = this.id.replace('project-', '');
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => this.classList.add('card-dragging'), 0);
+    }
+
+    function onCardDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (this.id.replace('project-', '') !== dragSrcProjectId) this.classList.add('card-drag-over');
+    }
+
+    function onCardDragLeave(e) {
+      if (!this.contains(e.relatedTarget)) this.classList.remove('card-drag-over');
+    }
+
+    function onCardDrop(e) {
+      e.stopPropagation();
+      this.classList.remove('card-drag-over');
+      const targetId = this.id.replace('project-', '');
+      if (dragSrcProjectId && targetId !== dragSrcProjectId) {
+        const fromIdx = data.projects.findIndex(p => p.id === dragSrcProjectId);
+        const toIdx   = data.projects.findIndex(p => p.id === targetId);
+        const [moved] = data.projects.splice(fromIdx, 1);
+        data.projects.splice(toIdx, 0, moved);
+        saveData();
+        render();
+      }
+    }
+
+    function onCardDragEnd() {
+      document.querySelectorAll('#projects-container > div').forEach(el => {
+        el.classList.remove('card-dragging', 'card-drag-over');
+      });
+      dragSrcProjectId = null;
+    }
+
     function render() {
       const container  = document.getElementById('projects-container');
       const emptyState = document.getElementById('empty-state');
@@ -712,6 +763,12 @@
           div.id = 'project-' + p.id;
           div.classList.add('card-enter');
           div.style.animationDelay = (i * 90) + 'ms';
+          div.draggable = true;
+          div.addEventListener('dragstart', onCardDragStart);
+          div.addEventListener('dragover',  onCardDragOver);
+          div.addEventListener('dragleave', onCardDragLeave);
+          div.addEventListener('drop',      onCardDrop);
+          div.addEventListener('dragend',   onCardDragEnd);
           container.appendChild(div);
           renderProject(p.id);
         });
@@ -735,6 +792,13 @@
         <div class="card rounded-2xl overflow-hidden">
           <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid rgba(255,255,255,0.05)">
             <div class="flex items-center gap-3">
+              <div class="drag-handle flex-shrink-0" title="Drag to reorder">
+                <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor">
+                  <circle cx="3" cy="3" r="1.5"/><circle cx="9" cy="3" r="1.5"/>
+                  <circle cx="3" cy="8" r="1.5"/><circle cx="9" cy="8" r="1.5"/>
+                  <circle cx="3" cy="13" r="1.5"/><circle cx="9" cy="13" r="1.5"/>
+                </svg>
+              </div>
               <div class="w-3 h-3 rounded-full flex-shrink-0"
                    style="background:${project.color};box-shadow:0 0 8px ${project.color}99"></div>
               <h2 class="font-bold text-lg text-slate-100">${esc(project.name)}</h2>

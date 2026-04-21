@@ -4,7 +4,7 @@ A lightweight, fully client-side **time tracker** built with HTML, Tailwind CSS,
 
 ## Features
 
-- **Projects** — Create and delete projects, each with a unique color indicator
+- **Projects** — Create, delete, and reorder projects by dragging them to a new position
 - **Tasks** — Add, rename (double-click or pencil icon), and delete tasks under any project
 - **Time tracking** — Start ▶️, Pause ⏸️, and Stop ⏹️ each task; only one task runs at a time
 - **Task goals** — Set an hour goal per task with a live progress bar; turns green when completed
@@ -42,6 +42,7 @@ python3 -m http.server
 | Action | How |
 |---|---|
 | Create project | Click **+ New Project** above the project list |
+| Reorder projects | Drag a project card by the ⠿ grip icon (or anywhere outside buttons/inputs) and drop it in the new position |
 | Delete project | Click the **×** button on the project card |
 | Add task | Type in the "New task name" input and press **Enter** or **+ Add** |
 | Rename task | Double-click the task name, or click the ✏️ pencil icon |
